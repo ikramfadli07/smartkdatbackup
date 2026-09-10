@@ -10,6 +10,42 @@
 .composer{border-top:1px solid var(--border);padding:14px 16px;background:#fff;display:flex;gap:10px;align-items:center}.composer input{min-width:0;flex:1;background:#F7FAFC;border:1px solid var(--border);border-radius:12px;padding:15px 16px;color:var(--heading);font-family:inherit;font-size:13px;outline:none}.composer input:focus{background:#fff;border-color:var(--primary);box-shadow:0 0 0 4px rgba(47,99,175,.10)}.composer button{height:50px;border:0;cursor:pointer;background:var(--yellow);color:#0B2545;font-family:inherit;font-weight:800;border-radius:12px;padding:0 22px;box-shadow:0 7px 16px rgba(254,193,21,.22);transition:.2s}.composer button:hover{transform:translateY(-2px)}
 .side{height:100%;overflow:auto;border-radius:24px;padding:18px}.side h3{color:var(--heading);margin:5px 0 14px;font-size:15px}.stat{padding:14px 15px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}.stat b{display:block;font-size:22px;color:var(--navy)}.stat span{font-size:11px;font-weight:600}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:9px 11px;border-radius:999px;background:#fff;color:var(--navy);border:1px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}.chip:hover{transform:translateY(-2px);border-color:var(--primary);background:#F4F8FC}.card{padding:12px 13px;margin-top:10px;border:1px solid var(--border);border-radius:12px;background:#F8FBFD;font-size:12px;line-height:1.5}.typing{display:flex;gap:5px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:b 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}@keyframes b{50%{transform:translateY(-4px);opacity:.55}}
 @media(max-width:900px){.app{padding:10px}.grid{grid-template-columns:1fr}.side,.badges{display:none}.brand-logo{width:132px;height:58px}.brand h1{font-size:16px}.brand p{font-size:10px}.chat{border-radius:18px}.msg{max-width:94%}.messages{padding:16px 14px 22px}.composer{padding:10px}.composer button{padding:0 16px}}
+
+/* SMART KDAT Summary + Full Data View */
+.summary-card{
+  margin-top:10px;padding:14px 16px;border:1px solid #D7E3EE;
+  border-left:4px solid #2F63AF;border-radius:12px;background:#F8FBFE;
+  line-height:1.55
+}
+.summary-card b{color:#0B2545}
+.data-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.data-toggle{
+  border:1px solid #2F63AF;background:#fff;color:#163A63;
+  padding:9px 13px;border-radius:999px;font-weight:700;font-size:12px;
+  cursor:pointer;transition:.2s ease
+}
+.data-toggle:hover{background:#2F63AF;color:#fff;transform:translateY(-1px)}
+.full-data-wrap{
+  display:none;margin-top:12px;border:1px solid #D7E3EE;border-radius:12px;
+  overflow:auto;background:#fff;max-height:520px
+}
+.full-data-wrap.open{display:block}
+.full-data-title{
+  position:sticky;top:0;z-index:2;padding:12px 14px;background:#0B2545;
+  color:#fff;font-weight:700;font-size:12px
+}
+.full-data-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:11px}
+.full-data-table th{
+  position:sticky;top:40px;background:#EAF1F8;color:#0B2545;
+  padding:9px;border-bottom:1px solid #D7E3EE;text-align:left;white-space:nowrap
+}
+.full-data-table td{
+  padding:8px 9px;border-bottom:1px solid #EDF2F6;vertical-align:top;
+  max-width:260px;word-break:break-word
+}
+.full-data-table tr:nth-child(even){background:#FAFCFE}
+.data-note{font-size:11px;color:#5B6B7C;margin-top:7px}
+
 </style></head><body>
 <div class="app"><header class="top"><div class="brand"><img class="brand-logo" src="kempen-internet-selamat-logo.png" alt="Kempen Internet Selamat"><div><h1>Kempen Internet Selamat <span>— SMART KDAT</span></h1><p>AI Data Assistant untuk carian <strong>Program & Institusi Pendidikan</strong></p></div></div><div class="badges"><div class="badge live">Data Ready</div><div class="badge" id="recordBadge">Memuatkan masterlist…</div></div></header>
 <main class="grid"><section class="chat"><div class="chat-head"><div class="chat-title"><div class="bot-avatar">🛡️</div><div><b>SMART KDAT Assistant</b><span>Fahami soalan → kenal pasti filter → jawab berdasarkan masterlist</span></div></div><div class="status"><i></i> Online</div></div><div class="messages" id="messages"></div><form class="composer" id="form"><input id="q" autocomplete="off" placeholder="Contoh: Berapa Karnival Komuniti yang belum dilaksanakan di Sabah?"><button>Tanya ✦</button></form></section>
@@ -140,8 +176,71 @@ function makeTable(rows,ds,p){
  const cols=displayColumns(p||{columns:[]},ds);
  return `<table class="answer-table"><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,8).map(r=>`<tr>${cols.map(c=>`<td>${esc(field(r,[c])||'—')}</td>`).join('')}</tr>`).join('')}</tbody></table>${rows.length>8?`<div style="margin-top:8px;font-size:11px">Memaparkan 8 daripada ${rows.length.toLocaleString()} rekod. SMART KDAT turut menapis semua kolum yang berkaitan.</div>`:''}`
 }
+
+function shortText(v,max=90){
+  const s=String(v??'').trim();
+  return s.length>max?s.slice(0,max-1)+'…':s;
+}
+function summariseRows(rows,p,ds){
+  const scope=[];
+  if(p.state)scope.push(p.state);
+  if(p.category)scope.push(p.category);
+  if(p.status==='belum')scope.push('Belum Dilaksanakan');
+  if(p.status==='sudah')scope.push('Sudah Dilaksanakan');
+  if(p.month)scope.push('Bulan '+p.month);
+  if(p.columns?.length)scope.push(...p.columns.slice(0,3));
+
+  const label=ds==='institusi'?'institusi pendidikan':'program';
+  const states=[...new Set(rows.map(r=>field(r,['Negeri'])).filter(Boolean))];
+  const categories=[...new Set(rows.map(r=>field(r,['Kategori Program','Kategori Institusi','Kategori Sekolah'])).filter(Boolean))];
+  const dates=rows.map(r=>field(r,['Tarikh Pelaksanaan','Tarikh Sasaran Pelaksanaan'])).filter(Boolean);
+
+  let sentence=`Saya menemui <b>${rows.length.toLocaleString()} rekod ${label}</b>`;
+  if(scope.length)sentence+=` berdasarkan carian <b>${esc(scope.join(' · '))}</b>`;
+  sentence+='.';
+  if(states.length)sentence+=` Rekod ini melibatkan ${states.length} negeri.`;
+  if(categories.length)sentence+=` Terdapat ${categories.length} kategori/nilai berkaitan dalam hasil carian.`;
+  if(dates.length)sentence+=` Data yang ditemui turut mengandungi maklumat pelaksanaan untuk rekod yang berkaitan.`;
+
+  const examples=rows.slice(0,3).map(r=>{
+    const name=ds==='institusi'
+      ?field(r,['Nama Institusi','Nama Program'])
+      :field(r,['Nama Program','Lokasi Program']);
+    const state=field(r,['Negeri']);
+    return [name,state].filter(Boolean).join(' — ');
+  }).filter(Boolean);
+
+  return `<div class="summary-card"><b>Ringkasan SMART KDAT</b><br>${sentence}${
+    examples.length?`<br><span class="data-note">Contoh rekod: ${esc(examples.join(' | '))}</span>`:''
+  }</div>`;
+}
+function fullDataView(rows,ds,uid){
+  if(!rows.length)return '';
+  const cols=ds==='institusi'?ALL_INSTITUSI_COLUMNS:ALL_PROGRAM_COLUMNS;
+  const id='full-data-'+uid;
+  return `<div class="data-actions">
+    <button class="data-toggle" type="button" onclick="toggleFullData('${id}',this)">
+      Lihat Keseluruhan Data (${rows.length.toLocaleString()} Rekod)
+    </button>
+  </div>
+  <div class="full-data-wrap" id="${id}">
+    <div class="full-data-title">Keseluruhan Data — ${rows.length.toLocaleString()} Rekod · ${cols.length} Kolum</div>
+    <table class="full-data-table"><thead><tr>${
+      cols.map(c=>`<th>${esc(c)}</th>`).join('')
+    }</tr></thead><tbody>${
+      rows.map(r=>`<tr>${cols.map(c=>`<td title="${esc(String(field(r,[c])??''))}">${esc(shortText(field(r,[c])||'—',120))}</td>`).join('')}</tr>`).join('')
+    }</tbody></table>
+  </div>`;
+}
+window.toggleFullData=function(id,btn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('open');
+  btn.textContent=el.classList.contains('open')?'Tutup Keseluruhan Data':'Lihat Keseluruhan Data ('+(el.querySelectorAll('tbody tr').length).toLocaleString()+' Rekod)';
+}
+
 function answer(question){
- const p=parse(question),data=p.dataset==='institusi'?INSTITUSI:PROGRAM,rows=filtered(data,p);
+ const p=parse(question),data=p.dataset==='institusi'?INSTITUSI:PROGRAM,rows=filtered(data,p),uid='q'+Date.now()+Math.random().toString(36).slice(2);
  if(p.top){
    const g={};rows.forEach(r=>{const s=field(r,['Negeri'])||'Tidak diketahui';g[s]=(g[s]||0)+1});
    const top=Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,p.top);
@@ -151,14 +250,14 @@ function answer(question){
  if(!rows.length)return `<div class="source">Semakan Masterlist</div><b>Saya tidak jumpa rekod yang sepadan.</b><br><span style="font-size:12px">Saya telah menyemak semua kolum berkaitan dalam dataset ${esc(p.dataset==='institusi'?'Institusi Pendidikan':'Program')}. Filter: ${esc(ctx||'carian kata kunci seluruh masterlist')}.</span>`;
  if(p.wantsParticipant){
    const total=rows.reduce((a,r)=>a+numeric(field(r,['Jumlah Peserta'])),0);
-   return `<div class="source">Semakan Masterlist</div><b>Jumlah peserta: ${total.toLocaleString()}</b><br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${makeTable(rows,p.dataset,p)}`
+   return `<div class="source">Semakan Masterlist</div><b>Jumlah peserta: ${total.toLocaleString()}</b><br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${summariseRows(rows,p,p.dataset)}${makeTable(rows,p.dataset,p)}${fullDataView(rows,p.dataset,uid)}`
  }
  if(p.wantsCost){
    const costCols=p.dataset==='institusi'?['Kos Sebenar (RM)','Kos Anggaran (RM)']:['Kos Pelaksanaan (RM)'];
    const sums=costCols.map(c=>[c,rows.reduce((a,r)=>a+numeric(field(r,[c])),0)]);
-   return `<div class="source">Analisis Kos Masterlist</div>${sums.map(([c,v])=>`<b>${esc(c)}: RM ${v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</b>`).join('<br>')}<br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${makeTable(rows,p.dataset,p)}`
+   return `<div class="source">Analisis Kos Masterlist</div>${sums.map(([c,v])=>`<b>${esc(c)}: RM ${v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</b>`).join('<br>')}<br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${summariseRows(rows,p,p.dataset)}${makeTable(rows,p.dataset,p)}${fullDataView(rows,p.dataset,uid)}`
  }
- if(p.count||p.category||p.state||p.status||p.month||p.columns.length||p.wantsList)return `<div class="source">Semakan Masterlist</div><b>${rows.length.toLocaleString()} rekod ditemui</b><br><span style="font-size:12px">Semakan: ${esc(ctx||'seluruh masterlist')}.</span>${makeTable(rows,p.dataset,p)}`
+ if(p.count||p.category||p.state||p.status||p.month||p.columns.length||p.wantsList)return `<div class="source">Semakan Masterlist</div><b>${rows.length.toLocaleString()} rekod ditemui</b><br><span style="font-size:12px">Semakan: ${esc(ctx||'seluruh masterlist')}.</span>${summariseRows(rows,p,p.dataset)}${makeTable(rows,p.dataset,p)}${fullDataView(rows,p.dataset,uid)}`
  return `<div class="source">SMART KDAT</div>Saya kini boleh menyemak <b>semua ${ALL_PROGRAM_COLUMNS.length} kolum Program</b> dan <b>semua ${ALL_INSTITUSI_COLUMNS.length} kolum Institusi Pendidikan</b>, termasuk lokasi, tarikh, perasmi, tetamu kehormat, modul, pelaksana, kerjasama, media, kos, peserta, Ikon K-DAT dan NADI.`
 }
 async function boot(){try{[PROGRAM,INSTITUSI]=await Promise.all([fetch('program.json').then(r=>r.json()),fetch('institusi.json').then(r=>r.json())]);document.getElementById('programCount').textContent=PROGRAM.length.toLocaleString();document.getElementById('institusiCount').textContent=INSTITUSI.length.toLocaleString();document.getElementById('recordBadge').textContent=(PROGRAM.length+INSTITUSI.length).toLocaleString()+' rekod dimuatkan';add(`<div class="source">Selamat datang</div><b>Hai! Saya SMART KDAT.</b><br>Saya boleh membantu anda mencari dan menganalisis data <b>Kempen Internet Selamat</b> berdasarkan masterlist sebenar.<br><br>Cuba: <b>“Karnival Komuniti sahaja”</b> atau <b>“Berapa Karnival Komuniti di Sabah?”</b>`)}catch(e){add(`<div class="source">Ralat Data</div>Pastikan <b>program.json</b> dan <b>institusi.json</b> berada dalam folder yang sama dengan index.html.`)}}document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();const text=q.value.trim();if(!text)return;add(esc(text),'user');q.value='';const t=add('<div class="typing"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();add(answer(text))},350)});document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{q.value=c.textContent;q.focus()}));boot();

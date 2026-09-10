@@ -1,24 +1,17 @@
-SMART KDAT V10.2 — ALL COLUMNS COVERED
+SMART KDAT V10.2 — SUMMARY + FULL DATA VIEW
 
-Version ini mengekalkan UI/Design System SMART KDAT V10.2.
-Logic chatbot telah diperluaskan supaya semua kolum daripada dua masterlist Excel boleh dicari dan digunakan dalam jawapan.
+UI/Design System V10.2 dikekalkan.
 
-Program: 27 kolum
-Institusi Pendidikan: 36 kolum
+Peningkatan baharu:
+1. Setiap hasil carian akan diberi "Ringkasan SMART KDAT" dalam bahasa semula jadi.
+2. Bot memberi konteks seperti jumlah rekod, negeri, kategori dan contoh rekod.
+3. Output masih memaparkan preview data.
+4. Butang "Lihat Keseluruhan Data" membolehkan pengguna membuka semua rekod hasil carian.
+5. Full data view memaparkan SEMUA kolum yang ada dalam masterlist untuk dataset tersebut.
+6. Tiada data dipadam daripada JSON.
 
-Replace seluruh folder/repository dengan fail ini, atau sekurang-kurangnya:
-- index.html (logic carian semua kolum)
-- program.json (semua data Program)
-- institusi.json (semua data Institusi)
-
-Contoh soalan:
-- Siapa perasmi program di Sabah?
-- Program mana di bawah DUN tertentu?
-- Senarai program mengikut pelaksana
-- Program yang ada liputan media
-- Berapa kos pelaksanaan di Johor?
-- Institusi yang ada Ikon K-DAT
-- Nama Ikon Guru di Sabah
-- Berapa JUMLAH NADI?
-- Institusi mengikut PPD
-- Program berdasarkan Topik/Modul
+Fail untuk GitHub:
+- index.html
+- program.json
+- institusi.json
+- kempen-internet-selamat-logo.png
