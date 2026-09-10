@@ -1,30 +1,33 @@
-SMART KDAT V10.2 — SUMMARY + FULL DATA VIEW
+SMART KDAT V10.4 — EXPORT + INTERACTIVE DATA EXPLORER
 
-UI/Design System V10.2 dikekalkan.
+Baharu:
+1. AI Assistant:
+   - Lihat Keseluruhan Data
+   - Download CSV untuk semua rekod + semua kolum hasil carian
+   - Download PDF untuk ringkasan profesional hasil carian
 
-Peningkatan baharu:
-1. Setiap hasil carian akan diberi "Ringkasan SMART KDAT" dalam bahasa semula jadi.
-2. Bot memberi konteks seperti jumlah rekod, negeri, kategori dan contoh rekod.
-3. Output masih memaparkan preview data.
-4. Butang "Lihat Keseluruhan Data" membolehkan pengguna membuka semua rekod hasil carian.
-5. Full data view memaparkan SEMUA kolum yang ada dalam masterlist untuk dataset tersebut.
-6. Tiada data dipadam daripada JSON.
+2. Dashboard:
+   - Dashboard ringkasan analitik
 
-Fail untuk GitHub:
+3. Data Explorer:
+   - Halaman baharu: data-explorer.html
+   - Search merentasi keseluruhan data
+   - Filter dataset, negeri dan tahun
+   - Dataset tabs
+   - Interactive state distribution
+   - Pagination
+   - CSV export
+   - PDF export
+   - Paparan keseluruhan data dalam satu tempat
+
+Fail utama:
 - index.html
+- dashboard.html
+- data-explorer.html
 - program.json
 - institusi.json
 - kempen-internet-selamat-logo.png
 
-
-DASHBOARD BAHARU:
-- dashboard.html
-- Statistik keseluruhan Program + Institusi
-- Filter Dataset, Negeri dan Tahun
-- Taburan rekod mengikut Negeri
-- Status Pelaksanaan
-- Top Kategori
-- Topik / Modul
-- Data Terperinci
-- Semua statistik dibaca terus daripada program.json dan institusi.json
-- index.html mempunyai shortcut "Dashboard Data"
+Nota PDF:
+PDF export menggunakan jsPDF melalui CDN, sesuai untuk GitHub Pages / static hosting.
+CSV sentiasa mengandungi keseluruhan data hasil filter dan semua kolum.

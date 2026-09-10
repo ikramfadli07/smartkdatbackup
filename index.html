@@ -46,7 +46,68 @@
 .full-data-table tr:nth-child(even){background:#FAFCFE}
 .data-note{font-size:11px;color:#5B6B7C;margin-top:7px}
 
-</style></head><body>
+
+/* Export controls */
+.export-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.export-btn{
+  border:1px solid #D7E3EE;background:#fff;color:#0B2545;padding:9px 13px;
+  border-radius:999px;font-weight:800;font-size:12px;cursor:pointer;transition:.2s ease
+}
+.export-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(11,37,69,.12)}
+.export-btn.csv{border-color:#2FA84F;color:#187338}
+.export-btn.pdf{border-color:#EC3D7C;color:#B51D58}
+.export-btn.view{border-color:#2F63AF;color:#2F63AF}
+
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+function csvCell(v){
+  const s=String(v??'').replace(/\r?\n/g,' ');
+  return '"'+s.replace(/"/g,'""')+'"';
+}
+window.downloadCSV=function(uid){
+  const d=(window.__SMART_EXPORTS||{})[uid];
+  if(!d)return;
+  const lines=[d.cols.map(csvCell).join(',')];
+  d.rows.forEach(r=>lines.push(d.cols.map(c=>csvCell(field(r,[c])||'')).join(',')));
+  const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`SMART-KDAT-${d.ds}-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+window.downloadPDF=function(uid){
+  const d=(window.__SMART_EXPORTS||{})[uid];
+  if(!d)return;
+  const summary=`SMART KDAT — ${d.ds==='institusi'?'Institusi Pendidikan':'Program'}\nJumlah rekod: ${d.rows.length.toLocaleString()}\nJumlah kolum: ${d.cols.length}\nTarikh eksport: ${new Date().toLocaleString('ms-MY')}`;
+  if(window.jspdf&&window.jspdf.jsPDF){
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({unit:'pt',format:'a4'});
+    const margin=40, pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
+    doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('SMART KDAT',margin,52);
+    doc.setFontSize(12);doc.setFont('helvetica','normal');
+    const lines=doc.splitTextToSize(summary,pageW-margin*2);doc.text(lines,margin,82);
+    let y=150;
+    const sample=d.rows.slice(0,25);
+    sample.forEach((r,i)=>{
+      const title=(field(r,['Nama Program','Nama Institusi'])||`Rekod ${i+1}`).toString();
+      const state=field(r,['Negeri'])||'';
+      const status=field(r,['Status Pelaksanaan'])||'';
+      const line=doc.splitTextToSize(`${i+1}. ${title}${state?' — '+state:''}${status?' — '+status:''}`,pageW-margin*2);
+      if(y+line.length*14>pageH-50){doc.addPage();y=50;}
+      doc.text(line,margin,y);y+=line.length*14+8;
+    });
+    if(d.rows.length>25){
+      if(y>pageH-70){doc.addPage();y=50;}
+      doc.setFont('helvetica','italic');doc.text(`PDF memaparkan ringkasan dan 25 rekod pertama. Muat turun CSV untuk keseluruhan ${d.rows.length.toLocaleString()} rekod.`,margin,y);
+    }
+    doc.save(`SMART-KDAT-${d.ds}-${new Date().toISOString().slice(0,10)}.pdf`);
+  }else{
+    alert('PDF library belum dimuatkan. Sila semak sambungan internet dan cuba semula.');
+  }
+}
+
+</script>
+</head><body>
 <div class="app"><header class="top"><div class="brand"><img class="brand-logo" src="kempen-internet-selamat-logo.png" alt="Kempen Internet Selamat"><div><h1>Kempen Internet Selamat <span>— SMART KDAT</span></h1><p>AI Data Assistant untuk carian <strong>Program & Institusi Pendidikan</strong></p></div></div><div class="badges"><div class="badge live">Data Ready</div><div class="badge" id="recordBadge">Memuatkan masterlist…</div></div></header>
 <main class="grid"><section class="chat"><div class="chat-head"><div class="chat-title"><div class="bot-avatar">🛡️</div><div><b>SMART KDAT Assistant</b><span>Fahami soalan → kenal pasti filter → jawab berdasarkan masterlist</span></div></div><div class="status"><i></i> Online</div></div><div class="messages" id="messages"></div><form class="composer" id="form"><input id="q" autocomplete="off" placeholder="Contoh: Berapa Karnival Komuniti yang belum dilaksanakan di Sabah?"><button>Tanya ✦</button></form></section>
 <aside class="side"><h3>Data Overview</h3><div class="stat"><b id="programCount">—</b><span>Rekod Program</span></div><div class="stat"><b id="institusiCount">—</b><span>Rekod Institusi</span></div><h3 style="margin-top:22px">Cuba tanya</h3><div class="chips"><button class="chip">Karnival Komuniti sahaja</button><button class="chip">Berapa Karnival Komuniti di Sabah?</button><button class="chip">Program belum dilaksanakan bulan Julai</button><button class="chip">Top 5 negeri paling banyak program</button><button class="chip">Institusi SK di Sabah</button><button class="chip">Jumlah peserta di Johor</button></div><div class="card"><b style="color:var(--heading)">Cara SMART KDAT berfikir</b><br>Ia mengenal pasti dataset, negeri, status, bulan, kategori program dan kata kunci sebelum menapis rekod sebenar.</div></aside></main></div>
@@ -218,13 +279,22 @@ function fullDataView(rows,ds,uid){
   if(!rows.length)return '';
   const cols=ds==='institusi'?ALL_INSTITUSI_COLUMNS:ALL_PROGRAM_COLUMNS;
   const id='full-data-'+uid;
+  window.__SMART_EXPORTS=window.__SMART_EXPORTS||{};
+  window.__SMART_EXPORTS[uid]={rows,cols,ds};
   return `<div class="data-actions">
-    <button class="data-toggle" type="button" onclick="toggleFullData('${id}',this)">
+    <button class="data-toggle view" type="button" onclick="toggleFullData('${id}',this)">
       Lihat Keseluruhan Data (${rows.length.toLocaleString()} Rekod)
     </button>
   </div>
   <div class="full-data-wrap" id="${id}">
     <div class="full-data-title">Keseluruhan Data — ${rows.length.toLocaleString()} Rekod · ${cols.length} Kolum</div>
+    <div style="padding:12px 14px;background:#F8FBFE;border-bottom:1px solid #D7E3EE">
+      <div class="export-group">
+        <button class="export-btn csv" type="button" onclick="downloadCSV('${uid}')">⬇ Muat Turun CSV</button>
+        <button class="export-btn pdf" type="button" onclick="downloadPDF('${uid}')">⬇ Muat Turun PDF</button>
+      </div>
+      <div class="data-note">CSV mengandungi keseluruhan rekod dan semua kolum. PDF ialah ringkasan profesional hasil carian.</div>
+    </div>
     <table class="full-data-table"><thead><tr>${
       cols.map(c=>`<th>${esc(c)}</th>`).join('')
     }</tr></thead><tbody>${
@@ -267,4 +337,5 @@ async function boot(){try{[PROGRAM,INSTITUSI]=await Promise.all([fetch('program.
 .smart-dashboard-link:hover{background:#2F63AF;transform:translateY(-1px)}
 @media(max-width:640px){.smart-dashboard-link{right:16px;bottom:82px}}
 </style>
+<a href="data-explorer.html" class="smart-dashboard-link" style="bottom:138px">Keseluruhan Data</a>
 </body></html>
