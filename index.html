@@ -1,0 +1,165 @@
+<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kempen Internet Selamat — SMART KDAT</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+:root{--primary:#2F63AF;--navy:#063F73;--sky:#22CBF2;--pink:#EC3D7C;--yellow:#FEC115;--page:#EAF1F8;--card:#fff;--heading:#0A2A4D;--body:#5B6B7C;--border:#D7E3EE;--success:#2FA84F;--r8:8px;--r12:12px;--r16:16px;--r24:24px;--shadow:0 8px 24px rgba(11,42,69,.08)}
+*{box-sizing:border-box}html,body{height:100%;overflow:hidden}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--page);color:var(--body)}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0,rgba(34,203,242,.12),transparent 28%),radial-gradient(circle at 0 100%,rgba(236,61,124,.07),transparent 30%)}
+.app{height:100dvh;max-width:1440px;margin:auto;padding:24px;display:flex;flex-direction:column;overflow:hidden}.top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}.brand{display:flex;align-items:center;gap:16px;min-width:0}.brand-logo{width:178px;height:72px;object-fit:contain;object-position:left center;flex:none;filter:drop-shadow(0 6px 12px rgba(10,42,77,.1))}.brand h1{margin:0;color:var(--heading);font-size:23px;line-height:1.15;letter-spacing:-.45px}.brand h1 span{color:var(--pink)}.brand p{margin:6px 0 0;font-size:12px}.brand p strong{color:var(--primary)}.badges{display:flex;gap:8px;flex-wrap:wrap}.badge{padding:8px 12px;border:1px solid var(--border);border-radius:999px;font-size:11px;font-weight:600;color:var(--navy);background:#fff}.live{background:var(--navy);color:#fff;border-color:var(--navy)}.live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-right:6px}
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.75fr) 310px;gap:16px}.chat,.side{min-height:0;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow)}.chat{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;border-radius:var(--r24);overflow:hidden}.chat-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(100deg,#fff,#F5FAFD)}.chat-title{display:flex;align-items:center;gap:10px}.bot-avatar{width:38px;height:38px;border-radius:12px;background:var(--navy);display:grid;place-items:center;color:#fff;font-size:18px}.chat-title b{display:block;color:var(--heading);font-size:14px}.chat-title span{display:block;font-size:10px;margin-top:2px}.status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600}.status i{width:8px;height:8px;border-radius:50%;background:var(--success)}
+.messages{min-height:0;padding:24px 22px 28px;overflow-y:auto;scroll-behavior:smooth;background:linear-gradient(rgba(255,255,255,.96),rgba(255,255,255,.96)),radial-gradient(circle at 90% 0,rgba(34,203,242,.06),transparent 30%)}.messages::-webkit-scrollbar{width:8px}.messages::-webkit-scrollbar-thumb{background:#C9D9E8;border-radius:999px}.msg{max-width:88%;padding:14px 16px;margin:0 0 14px;border-radius:16px;line-height:1.6;font-size:13px;animation:pop .22s ease both}@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.bot{background:#F3F8FC;border:1px solid #DCE8F2;border-top-left-radius:5px;color:#425568}.user{color:#fff;background:linear-gradient(135deg,var(--primary),var(--navy));margin-left:auto;border-top-right-radius:5px}.source{font-size:10px;letter-spacing:.05em;color:var(--pink);margin-bottom:8px;font-weight:800;text-transform:uppercase}.source:before{content:"SMART KDAT";background:#FCE9F0;padding:4px 7px;border-radius:999px;margin-right:6px}
+.answer-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px;background:#fff;border:1px solid var(--border)}.answer-table th{background:var(--navy);color:#fff;text-align:left;padding:8px}.answer-table td{padding:8px;border-top:1px solid var(--border);vertical-align:top}.answer-table tr:nth-child(even) td{background:#F8FBFD}
+.composer{border-top:1px solid var(--border);padding:14px 16px;background:#fff;display:flex;gap:10px;align-items:center}.composer input{min-width:0;flex:1;background:#F7FAFC;border:1px solid var(--border);border-radius:12px;padding:15px 16px;color:var(--heading);font-family:inherit;font-size:13px;outline:none}.composer input:focus{background:#fff;border-color:var(--primary);box-shadow:0 0 0 4px rgba(47,99,175,.10)}.composer button{height:50px;border:0;cursor:pointer;background:var(--yellow);color:#0B2545;font-family:inherit;font-weight:800;border-radius:12px;padding:0 22px;box-shadow:0 7px 16px rgba(254,193,21,.22);transition:.2s}.composer button:hover{transform:translateY(-2px)}
+.side{height:100%;overflow:auto;border-radius:24px;padding:18px}.side h3{color:var(--heading);margin:5px 0 14px;font-size:15px}.stat{padding:14px 15px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}.stat b{display:block;font-size:22px;color:var(--navy)}.stat span{font-size:11px;font-weight:600}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:9px 11px;border-radius:999px;background:#fff;color:var(--navy);border:1px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}.chip:hover{transform:translateY(-2px);border-color:var(--primary);background:#F4F8FC}.card{padding:12px 13px;margin-top:10px;border:1px solid var(--border);border-radius:12px;background:#F8FBFD;font-size:12px;line-height:1.5}.typing{display:flex;gap:5px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:b 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}@keyframes b{50%{transform:translateY(-4px);opacity:.55}}
+@media(max-width:900px){.app{padding:10px}.grid{grid-template-columns:1fr}.side,.badges{display:none}.brand-logo{width:132px;height:58px}.brand h1{font-size:16px}.brand p{font-size:10px}.chat{border-radius:18px}.msg{max-width:94%}.messages{padding:16px 14px 22px}.composer{padding:10px}.composer button{padding:0 16px}}
+</style></head><body>
+<div class="app"><header class="top"><div class="brand"><img class="brand-logo" src="kempen-internet-selamat-logo.png" alt="Kempen Internet Selamat"><div><h1>Kempen Internet Selamat <span>— SMART KDAT</span></h1><p>AI Data Assistant untuk carian <strong>Program & Institusi Pendidikan</strong></p></div></div><div class="badges"><div class="badge live">Data Ready</div><div class="badge" id="recordBadge">Memuatkan masterlist…</div></div></header>
+<main class="grid"><section class="chat"><div class="chat-head"><div class="chat-title"><div class="bot-avatar">🛡️</div><div><b>SMART KDAT Assistant</b><span>Fahami soalan → kenal pasti filter → jawab berdasarkan masterlist</span></div></div><div class="status"><i></i> Online</div></div><div class="messages" id="messages"></div><form class="composer" id="form"><input id="q" autocomplete="off" placeholder="Contoh: Berapa Karnival Komuniti yang belum dilaksanakan di Sabah?"><button>Tanya ✦</button></form></section>
+<aside class="side"><h3>Data Overview</h3><div class="stat"><b id="programCount">—</b><span>Rekod Program</span></div><div class="stat"><b id="institusiCount">—</b><span>Rekod Institusi</span></div><h3 style="margin-top:22px">Cuba tanya</h3><div class="chips"><button class="chip">Karnival Komuniti sahaja</button><button class="chip">Berapa Karnival Komuniti di Sabah?</button><button class="chip">Program belum dilaksanakan bulan Julai</button><button class="chip">Top 5 negeri paling banyak program</button><button class="chip">Institusi SK di Sabah</button><button class="chip">Jumlah peserta di Johor</button></div><div class="card"><b style="color:var(--heading)">Cara SMART KDAT berfikir</b><br>Ia mengenal pasti dataset, negeri, status, bulan, kategori program dan kata kunci sebelum menapis rekod sebenar.</div></aside></main></div>
+<script>
+const messages=document.getElementById('messages'),q=document.getElementById('q');let PROGRAM=[],INSTITUSI=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const norm=s=>String(s??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim();
+const states=['PERLIS','PULAU PINANG','KEDAH','PERAK','PAHANG','TERENGGANU','KELANTAN','NEGERI SEMBILAN','JOHOR','MELAKA','SELANGOR','WILAYAH PERSEKUTUAN','SARAWAK','SABAH'],aliases={penang:'PULAU PINANG',wp:'WILAYAH PERSEKUTUAN','kuala lumpur':'WILAYAH PERSEKUTUAN','negeri sembilan':'NEGERI SEMBILAN'};
+const months={januari:1,februari:2,mac:3,april:4,mei:5,jun:6,julai:7,ogos:8,september:9,oktober:10,november:11,disember:12,january:1,february:2,march:3,may:5,june:6,july:7,august:8,october:10,december:12};
+
+const field=(o,n)=>{for(const x of n)if(o[x]!=null&&o[x]!=='')return o[x];return ''};
+const ALL_PROGRAM_COLUMNS=['No.','Wilayah','Negeri','Dun','Parlimen','Nama Program','Lokasi Program','Latitude','Longitude','Status Pelaksanaan','Suku Tahun','Tarikh Sasaran Pelaksanaan','Tarikh Pelaksanaan','Perasmi','Jawatan Perasmi','Tetamu Kehormat','Topik/ Modul','Pelaksana','Kategori Program','Gabungan Kerjasama','Link Dokumen (Slide/ Bahan Sokongan/ Gambar Program DLL)','Liputan Media (Ya/Tidak)','Link Liputan Media','Jumlah Peserta','Kos Pelaksanaan (RM)','Bulan','Tahun'];
+const ALL_INSTITUSI_COLUMNS=['No.','Wilayah','Negeri','PPD','Nama Institusi','Kategori Institusi','Kategori Sekolah','Jenis Institusi','Dun','Parlimen','Lokasi Program','Status Pelaksanaan','Latitude','Longitude','Suku Tahun','Tarikh Sasaran Pelaksanaan','Tarikh Pelaksanaan','Nama Program','Kategori Program','Jawatan Perasmi','Perasmi','Tetamu Kehormat','Jenis Modul','Kategori Peserta','Pelaksana','Gabungan Kerjasama','Ikon K-DAT (Ada/ Tiada)','Nama Ikon Guru','Jawatan Ikon Guru','No Tel Ikon Guru','Nama Ikon Murid','Jumlah Peserta','Kos Anggaran (RM)','Kos Sebenar (RM)','SENARAI  NADI','JUMLAH NADI'];
+
+const COLUMN_ALIASES={
+ 'Wilayah':['wilayah','region'],
+ 'Negeri':['negeri','state'],
+ 'PPD':['ppd','pejabat pendidikan daerah'],
+ 'Nama Program':['nama program','program apa','program mana'],
+ 'Nama Institusi':['nama institusi','institusi mana','sekolah mana'],
+ 'Kategori Institusi':['kategori institusi'],
+ 'Kategori Sekolah':['kategori sekolah','sekolah rendah','sekolah menengah','sk','smk'],
+ 'Jenis Institusi':['jenis institusi'],
+ 'Dun':['dun'],
+ 'Parlimen':['parlimen','parliament'],
+ 'Lokasi Program':['lokasi','tempat program','venue'],
+ 'Latitude':['latitude','latitud'],
+ 'Longitude':['longitude','longitud'],
+ 'Status Pelaksanaan':['status','belum dilaksanakan','sudah dilaksanakan','telah dilaksanakan'],
+ 'Suku Tahun':['suku tahun','quarter','q1','q2','q3','q4'],
+ 'Tarikh Sasaran Pelaksanaan':['tarikh sasaran','target date'],
+ 'Tarikh Pelaksanaan':['tarikh pelaksanaan','bila dilaksanakan','tarikh program'],
+ 'Perasmi':['perasmi','dirasmikan oleh','siapa rasmi'],
+ 'Jawatan Perasmi':['jawatan perasmi','jawatan rasmi'],
+ 'Tetamu Kehormat':['tetamu kehormat','vip'],
+ 'Topik/ Modul':['topik','modul'],
+ 'Jenis Modul':['jenis modul'],
+ 'Pelaksana':['pelaksana','dilaksanakan oleh','penganjur'],
+ 'Kategori Program':['kategori program','karnival komuniti','program umum','bengkel ikon'],
+ 'Kategori Peserta':['kategori peserta','sasaran peserta'],
+ 'Gabungan Kerjasama':['gabungan kerjasama','kerjasama','rakan kerjasama'],
+ 'Link Dokumen (Slide/ Bahan Sokongan/ Gambar Program DLL)':['link dokumen','dokumen','bahan sokongan','gambar program','slide'],
+ 'Liputan Media (Ya/Tidak)':['liputan media','media coverage'],
+ 'Link Liputan Media':['link liputan media'],
+ 'Jumlah Peserta':['jumlah peserta','berapa peserta','peserta'],
+ 'Kos Pelaksanaan (RM)':['kos pelaksanaan','kos program','jumlah kos','perbelanjaan'],
+ 'Kos Anggaran (RM)':['kos anggaran','anggaran kos'],
+ 'Kos Sebenar (RM)':['kos sebenar','actual cost'],
+ 'Bulan':['bulan','januari','februari','mac','april','mei','jun','julai','ogos','september','oktober','november','disember'],
+ 'Tahun':['tahun','2025','2026'],
+ 'Ikon K-DAT (Ada/ Tiada)':['ikon k-dat','ada ikon','tiada ikon'],
+ 'Nama Ikon Guru':['nama ikon guru','ikon guru'],
+ 'Jawatan Ikon Guru':['jawatan ikon guru'],
+ 'No Tel Ikon Guru':['telefon ikon guru','no tel ikon guru','nombor ikon guru'],
+ 'Nama Ikon Murid':['nama ikon murid','ikon murid'],
+ 'SENARAI  NADI':['senarai nadi','nadi'],
+ 'JUMLAH NADI':['jumlah nadi','berapa nadi']
+};
+
+function add(h,w='bot'){const d=document.createElement('div');d.className='msg '+w;d.innerHTML=h;messages.appendChild(d);requestAnimationFrame(()=>messages.scrollTop=messages.scrollHeight);return d}
+function allText(r){return Object.values(r).filter(v=>v!==null&&v!==undefined).map(v=>norm(String(v))).join(' | ')}
+function numeric(v){if(v===null||v===undefined||v==='')return 0;return Number(String(v).replace(/[^\d.-]/g,''))||0}
+function detectDataset(t){
+ if(/institusi|sekolah|universiti|kolej|ipg|pendidikan|ppd|ikon guru|ikon murid|nadi/.test(t))return'institusi';
+ return'program'
+}
+function detectMentionedColumns(t,ds){
+ const allowed=ds==='institusi'?ALL_INSTITUSI_COLUMNS:ALL_PROGRAM_COLUMNS;
+ return allowed.filter(c=>(COLUMN_ALIASES[c]||[]).some(a=>t.includes(norm(a))));
+}
+function parse(question){
+ const t=norm(question);
+ let state=null;
+ for(const [a,s] of Object.entries(aliases))if(t.includes(a))state=s;
+ if(!state)state=states.find(s=>t.includes(norm(s)))||null;
+ let month=null;
+ for(const [m,n] of Object.entries(months))if(t.includes(m)){month=n;break}
+ const status=/belum dilaksanakan|belum/.test(t)?'belum':/sudah dilaksanakan|telah dilaksanakan|sudah/.test(t)?'sudah':null;
+ const category=/karnival komuniti/.test(t)?'Karnival Komuniti':/program umum/.test(t)?'Program Umum':/bengkel ikon/.test(t)?'Bengkel Ikon K-DAT':null;
+ const top=(t.match(/top\s*(\d+)/)||[])[1];
+ const dataset=detectDataset(t);
+ const columns=detectMentionedColumns(t,dataset);
+ const wantsParticipant=/jumlah peserta|berapa peserta|peserta/.test(t);
+ const wantsCost=/kos pelaksanaan|kos program|jumlah kos|perbelanjaan|kos anggaran|kos sebenar/.test(t);
+ const wantsList=/senarai|list|papar|tunjuk|program mana|institusi mana|rekod mana/.test(t);
+ const count=/berapa|jumlah|bilangan|berapa banyak|count|top|ada berapa/.test(t);
+ return{t,state,month,status,category,top:top?+top:null,dataset,columns,wantsParticipant,wantsCost,wantsList,count}
+}
+function removeKnownTerms(t,p){
+ let x=' '+t+' ';
+ const remove=['berapa','jumlah','bilangan','berapa banyak','ada berapa','top','program','institusi','pendidikan','sahaja','mana','yang','di','pada','dalam','untuk','dan','atau','belum','sudah','telah','dilaksanakan','status','rekod','tunjuk','papar','senarai','list','peserta','kos','perasmi','tetamu kehormat','pelaksana','topik','modul','bulan','tahun','kategori','negeri','wilayah','lokasi','tarikh','suku tahun','kerjasama'];
+ for(const s of remove)x=x.replaceAll(s,' ');
+ if(p.state)x=x.replaceAll(norm(p.state),' ');
+ if(p.category)x=x.replaceAll(norm(p.category),' ');
+ for(const m of Object.keys(months))x=x.replaceAll(m,' ');
+ return x.split(/\s+/).map(s=>s.trim()).filter(s=>s.length>=3&&!/^\d+$/.test(s)).filter((v,i,a)=>a.indexOf(v)===i);
+}
+function filtered(data,p){
+ const residual=removeKnownTerms(p.t,p);
+ return data.filter(r=>{
+   if(p.state&&norm(field(r,['Negeri']))!==norm(p.state))return false;
+   if(p.month&&String(Math.round(Number(field(r,['Bulan']))))!==String(p.month))return false;
+   const st=norm(field(r,['Status Pelaksanaan']));
+   if(p.status==='belum'&&!st.includes('belum'))return false;
+   if(p.status==='sudah'&&!(/sudah|telah/.test(st)))return false;
+   if(p.category&&!norm(field(r,['Kategori Program'])).includes(norm(p.category)))return false;
+   if(p.dataset==='institusi'&&/(^|\s)sk(\s|$)/.test(' '+p.t+' ')){
+      const v=norm(field(r,['Kategori Sekolah','Nama Institusi','Jenis Institusi']));
+      if(!/(^|\s)sk(\s|$)|sekolah kebangsaan/.test(v))return false;
+   }
+   if(residual.length){
+      const txt=allText(r);
+      const matched=residual.filter(k=>txt.includes(k));
+      if(matched.length===0)return false;
+   }
+   return true
+ })
+}
+function displayColumns(p,ds){
+ const base=ds==='institusi'
+ ?['Nama Institusi','Nama Program','Negeri','Kategori Institusi','Kategori Sekolah','Status Pelaksanaan','Tarikh Pelaksanaan','Jumlah Peserta']
+ :['Nama Program','Negeri','Wilayah','Dun','Parlimen','Kategori Program','Status Pelaksanaan','Tarikh Pelaksanaan','Jumlah Peserta'];
+ const cols=[...p.columns,...base].filter((v,i,a)=>a.indexOf(v)===i);
+ return cols.slice(0,8);
+}
+function makeTable(rows,ds,p){
+ const cols=displayColumns(p||{columns:[]},ds);
+ return `<table class="answer-table"><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,8).map(r=>`<tr>${cols.map(c=>`<td>${esc(field(r,[c])||'—')}</td>`).join('')}</tr>`).join('')}</tbody></table>${rows.length>8?`<div style="margin-top:8px;font-size:11px">Memaparkan 8 daripada ${rows.length.toLocaleString()} rekod. SMART KDAT turut menapis semua kolum yang berkaitan.</div>`:''}`
+}
+function answer(question){
+ const p=parse(question),data=p.dataset==='institusi'?INSTITUSI:PROGRAM,rows=filtered(data,p);
+ if(p.top){
+   const g={};rows.forEach(r=>{const s=field(r,['Negeri'])||'Tidak diketahui';g[s]=(g[s]||0)+1});
+   const top=Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,p.top);
+   return `<div class="source">Analisis Masterlist</div><b>Top ${p.top} negeri berdasarkan jumlah rekod</b><table class="answer-table"><thead><tr><th>Negeri</th><th>Jumlah Rekod</th></tr></thead><tbody>${top.map(x=>`<tr><td>${esc(x[0])}</td><td><b>${x[1].toLocaleString()}</b></td></tr>`).join('')}</tbody></table>`
+ }
+ const ctx=[p.dataset==='institusi'?'Institusi Pendidikan':'Program',...p.columns,p.category,p.state,p.status==='belum'?'Belum Dilaksanakan':p.status==='sudah'?'Sudah Dilaksanakan':null,p.month?'Bulan '+p.month:null].filter(Boolean).join(' · ');
+ if(!rows.length)return `<div class="source">Semakan Masterlist</div><b>Saya tidak jumpa rekod yang sepadan.</b><br><span style="font-size:12px">Saya telah menyemak semua kolum berkaitan dalam dataset ${esc(p.dataset==='institusi'?'Institusi Pendidikan':'Program')}. Filter: ${esc(ctx||'carian kata kunci seluruh masterlist')}.</span>`;
+ if(p.wantsParticipant){
+   const total=rows.reduce((a,r)=>a+numeric(field(r,['Jumlah Peserta'])),0);
+   return `<div class="source">Semakan Masterlist</div><b>Jumlah peserta: ${total.toLocaleString()}</b><br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${makeTable(rows,p.dataset,p)}`
+ }
+ if(p.wantsCost){
+   const costCols=p.dataset==='institusi'?['Kos Sebenar (RM)','Kos Anggaran (RM)']:['Kos Pelaksanaan (RM)'];
+   const sums=costCols.map(c=>[c,rows.reduce((a,r)=>a+numeric(field(r,[c])),0)]);
+   return `<div class="source">Analisis Kos Masterlist</div>${sums.map(([c,v])=>`<b>${esc(c)}: RM ${v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</b>`).join('<br>')}<br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${makeTable(rows,p.dataset,p)}`
+ }
+ if(p.count||p.category||p.state||p.status||p.month||p.columns.length||p.wantsList)return `<div class="source">Semakan Masterlist</div><b>${rows.length.toLocaleString()} rekod ditemui</b><br><span style="font-size:12px">Semakan: ${esc(ctx||'seluruh masterlist')}.</span>${makeTable(rows,p.dataset,p)}`
+ return `<div class="source">SMART KDAT</div>Saya kini boleh menyemak <b>semua ${ALL_PROGRAM_COLUMNS.length} kolum Program</b> dan <b>semua ${ALL_INSTITUSI_COLUMNS.length} kolum Institusi Pendidikan</b>, termasuk lokasi, tarikh, perasmi, tetamu kehormat, modul, pelaksana, kerjasama, media, kos, peserta, Ikon K-DAT dan NADI.`
+}
+async function boot(){try{[PROGRAM,INSTITUSI]=await Promise.all([fetch('program.json').then(r=>r.json()),fetch('institusi.json').then(r=>r.json())]);document.getElementById('programCount').textContent=PROGRAM.length.toLocaleString();document.getElementById('institusiCount').textContent=INSTITUSI.length.toLocaleString();document.getElementById('recordBadge').textContent=(PROGRAM.length+INSTITUSI.length).toLocaleString()+' rekod dimuatkan';add(`<div class="source">Selamat datang</div><b>Hai! Saya SMART KDAT.</b><br>Saya boleh membantu anda mencari dan menganalisis data <b>Kempen Internet Selamat</b> berdasarkan masterlist sebenar.<br><br>Cuba: <b>“Karnival Komuniti sahaja”</b> atau <b>“Berapa Karnival Komuniti di Sabah?”</b>`)}catch(e){add(`<div class="source">Ralat Data</div>Pastikan <b>program.json</b> dan <b>institusi.json</b> berada dalam folder yang sama dengan index.html.`)}}document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();const text=q.value.trim();if(!text)return;add(esc(text),'user');q.value='';const t=add('<div class="typing"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();add(answer(text))},350)});document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{q.value=c.textContent;q.focus()}));boot();
+</script></body></html>
