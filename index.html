@@ -183,9 +183,15 @@ function parse(question){
  let state=null;
  for(const [a,s] of Object.entries(aliases))if(t.includes(a))state=s;
  if(!state)state=states.find(s=>t.includes(norm(s)))||null;
+
  let month=null;
  for(const [m,n] of Object.entries(months))if(t.includes(m)){month=n;break}
- const status=/belum dilaksanakan|belum/.test(t)?'belum':/sudah dilaksanakan|telah dilaksanakan|sudah/.test(t)?'sudah':null;
+
+ const yearMatch=t.match(/\b(20\d{2})\b/);
+ const year=yearMatch?yearMatch[1]:null;
+ const until=/sehingga|hingga|sampai/.test(t);
+
+ const status=/belum dilaksanakan|belum/.test(t)?'belum':/sudah dilaksanakan|telah dilaksanakan|sudah|dilaksanakan/.test(t)?'sudah':null;
  const category=/karnival komuniti/.test(t)?'Karnival Komuniti':/program umum/.test(t)?'Program Umum':/bengkel ikon/.test(t)?'Bengkel Ikon K-DAT':null;
  const top=(t.match(/top\s*(\d+)/)||[])[1];
  const dataset=detectDataset(t);
@@ -194,7 +200,7 @@ function parse(question){
  const wantsCost=/kos pelaksanaan|kos program|jumlah kos|perbelanjaan|kos anggaran|kos sebenar/.test(t);
  const wantsList=/senarai|list|papar|tunjuk|program mana|institusi mana|rekod mana/.test(t);
  const count=/berapa|jumlah|bilangan|berapa banyak|count|top|ada berapa/.test(t);
- return{t,state,month,status,category,top:top?+top:null,dataset,columns,wantsParticipant,wantsCost,wantsList,count}
+ return{t,state,month,year,until,status,category,top:top?+top:null,dataset,columns,wantsParticipant,wantsCost,wantsList,count}
 }
 function removeKnownTerms(t,p){
  let x=' '+t+' ';
@@ -205,15 +211,42 @@ function removeKnownTerms(t,p){
  for(const m of Object.keys(months))x=x.replaceAll(m,' ');
  return x.split(/\s+/).map(s=>s.trim()).filter(s=>s.length>=3&&!/^\d+$/.test(s)).filter((v,i,a)=>a.indexOf(v)===i);
 }
+function rowMonth(r){
+  const raw=field(r,['Bulan']);
+  const n=Number(raw);
+  if(Number.isFinite(n)&&n>=1&&n<=12)return n;
+  const d=field(r,['Tarikh Pelaksanaan','Tarikh Sasaran Pelaksanaan']);
+  const low=norm(d);
+  for(const [m,num] of Object.entries(months))if(low.includes(m))return num;
+  const dt=new Date(d);
+  if(!isNaN(dt))return dt.getMonth()+1;
+  return null;
+}
+function rowYear(r){
+  const raw=field(r,['Tahun']);
+  const m=String(raw||'').match(/20\d{2}/);
+  if(m)return m[0];
+  const d=field(r,['Tarikh Pelaksanaan','Tarikh Sasaran Pelaksanaan']);
+  const m2=String(d||'').match(/20\d{2}/);
+  return m2?m2[0]:null;
+}
 function filtered(data,p){
  const residual=removeKnownTerms(p.t,p);
  return data.filter(r=>{
    if(p.state&&norm(field(r,['Negeri']))!==norm(p.state))return false;
-   if(p.month&&String(Math.round(Number(field(r,['Bulan']))))!==String(p.month))return false;
+
+   const rm=rowMonth(r), ry=rowYear(r);
+   if(p.year&&ry&&ry!==p.year)return false;
+   if(p.month){
+     if(rm===null)return false;
+     if(p.until ? rm>p.month : rm!==p.month)return false;
+   }
+
    const st=norm(field(r,['Status Pelaksanaan']));
    if(p.status==='belum'&&!st.includes('belum'))return false;
    if(p.status==='sudah'&&!(/sudah|telah/.test(st)))return false;
    if(p.category&&!norm(field(r,['Kategori Program'])).includes(norm(p.category)))return false;
+
    if(p.dataset==='institusi'&&/(^|\s)sk(\s|$)/.test(' '+p.t+' ')){
       const v=norm(field(r,['Kategori Sekolah','Nama Institusi','Jenis Institusi']));
       if(!/(^|\s)sk(\s|$)|sekolah kebangsaan/.test(v))return false;
@@ -223,7 +256,7 @@ function filtered(data,p){
       const matched=residual.filter(k=>txt.includes(k));
       if(matched.length===0)return false;
    }
-   return true
+   return true;
  })
 }
 function displayColumns(p,ds){
@@ -242,38 +275,43 @@ function shortText(v,max=90){
   const s=String(v??'').trim();
   return s.length>max?s.slice(0,max-1)+'…':s;
 }
+function monthName(n){
+  const names=['','Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+  return names[n]||'';
+}
+function latestPeriod(rows,p){
+  if(p.year&&p.month)return `${monthName(p.month)} ${p.year}`;
+  if(p.month)return monthName(p.month);
+  const vals=rows.map(r=>({m:rowMonth(r),y:rowYear(r)})).filter(x=>x.m);
+  if(!vals.length)return '';
+  vals.sort((a,b)=>((+a.y||0)*12+a.m)-((+b.y||0)*12+b.m));
+  const x=vals[vals.length-1];
+  return `${monthName(x.m)}${x.y?' '+x.y:''}`;
+}
 function summariseRows(rows,p,ds){
-  const scope=[];
-  if(p.state)scope.push(p.state);
-  if(p.category)scope.push(p.category);
-  if(p.status==='belum')scope.push('Belum Dilaksanakan');
-  if(p.status==='sudah')scope.push('Sudah Dilaksanakan');
-  if(p.month)scope.push('Bulan '+p.month);
-  if(p.columns?.length)scope.push(...p.columns.slice(0,3));
+  const label=p.category || (ds==='institusi'?'institusi pendidikan':'program');
+  const stateText=p.state?` di ${p.state}`:'';
+  const statusText=p.status==='sudah'?' telah dilaksanakan':p.status==='belum'?' masih belum dilaksanakan':'';
+  const period=latestPeriod(rows,p);
+  const periodText=period?(p.until?' sehingga ':' setakat ')+period:'';
 
-  const label=ds==='institusi'?'institusi pendidikan':'program';
-  const states=[...new Set(rows.map(r=>field(r,['Negeri'])).filter(Boolean))];
-  const categories=[...new Set(rows.map(r=>field(r,['Kategori Program','Kategori Institusi','Kategori Sekolah'])).filter(Boolean))];
-  const dates=rows.map(r=>field(r,['Tarikh Pelaksanaan','Tarikh Sasaran Pelaksanaan'])).filter(Boolean);
+  let answer=`Berdasarkan rekod SMART KDAT, sebanyak <b>${rows.length.toLocaleString()} ${esc(label)}</b>${statusText}${stateText}${periodText}.`;
+  if(!p.count && !p.category && !p.state && !p.status && !p.month){
+    answer=`Berdasarkan rekod SMART KDAT, saya menemui <b>${rows.length.toLocaleString()} rekod</b> yang sepadan dengan pertanyaan anda.`;
+  }
 
-  let sentence=`Saya menemui <b>${rows.length.toLocaleString()} rekod ${label}</b>`;
-  if(scope.length)sentence+=` berdasarkan carian <b>${esc(scope.join(' · '))}</b>`;
-  sentence+='.';
-  if(states.length)sentence+=` Rekod ini melibatkan ${states.length} negeri.`;
-  if(categories.length)sentence+=` Terdapat ${categories.length} kategori/nilai berkaitan dalam hasil carian.`;
-  if(dates.length)sentence+=` Data yang ditemui turut mengandungi maklumat pelaksanaan untuk rekod yang berkaitan.`;
+  let context=[];
+  if(p.category)context.push(`kategori ${p.category}`);
+  if(p.state)context.push(`negeri ${p.state}`);
+  if(p.status==='sudah')context.push('status Telah/Sudah Dilaksanakan');
+  if(p.status==='belum')context.push('status Belum Dilaksanakan');
+  if(p.month)context.push(`${p.until?'sehingga ':'bulan '}${monthName(p.month)}`);
 
-  const examples=rows.slice(0,3).map(r=>{
-    const name=ds==='institusi'
-      ?field(r,['Nama Institusi','Nama Program'])
-      :field(r,['Nama Program','Lokasi Program']);
-    const state=field(r,['Negeri']);
-    return [name,state].filter(Boolean).join(' — ');
-  }).filter(Boolean);
-
-  return `<div class="summary-card"><b>Ringkasan SMART KDAT</b><br>${sentence}${
-    examples.length?`<br><span class="data-note">Contoh rekod: ${esc(examples.join(' | '))}</span>`:''
-  }</div>`;
+  return `<div class="summary-card">
+    <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.72;margin-bottom:6px">Jawapan SMART KDAT</div>
+    <div style="font-size:15px;line-height:1.65">${answer}</div>
+    <div class="data-note" style="margin-top:9px">Kiraan ini dibuat berdasarkan ${esc(context.length?context.join(' · '):'rekod yang sepadan dalam masterlist semasa')}.</div>
+  </div>`;
 }
 function fullDataView(rows,ds,uid){
   if(!rows.length)return '';
@@ -310,34 +348,55 @@ window.toggleFullData=function(id,btn){
 }
 
 function answer(question){
- const p=parse(question),data=p.dataset==='institusi'?INSTITUSI:PROGRAM,rows=filtered(data,p),uid='q'+Date.now()+Math.random().toString(36).slice(2);
+ const p=parse(question);
+ const data=p.dataset==='institusi'?INSTITUSI:PROGRAM;
+ const rows=filtered(data,p);
+
  if(p.top){
-   const g={};rows.forEach(r=>{const s=field(r,['Negeri'])||'Tidak diketahui';g[s]=(g[s]||0)+1});
+   const g={};
+   rows.forEach(r=>{const key=field(r,['Negeri'])||'Tidak diketahui';g[key]=(g[key]||0)+1});
    const top=Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,p.top);
-   return `<div class="source">Analisis Masterlist</div><b>Top ${p.top} negeri berdasarkan jumlah rekod</b><table class="answer-table"><thead><tr><th>Negeri</th><th>Jumlah Rekod</th></tr></thead><tbody>${top.map(x=>`<tr><td>${esc(x[0])}</td><td><b>${x[1].toLocaleString()}</b></td></tr>`).join('')}</tbody></table>`
+   const first=top[0];
+   const summary=first
+     ?`Berdasarkan rekod SMART KDAT, <b>${esc(first[0])}</b> merekodkan jumlah tertinggi dengan <b>${first[1].toLocaleString()} rekod</b>${p.category?` bagi ${esc(p.category)}`:''}.`
+     :`Tiada rekod mencukupi untuk menghasilkan ranking.`;
+   return `<div class="summary-card"><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.72;margin-bottom:6px">Jawapan SMART KDAT</div>${summary}</div>
+   <div class="source">Analisis Masterlist</div>
+   <b>Top ${p.top} negeri berdasarkan jumlah rekod</b>
+   <table class="answer-table"><thead><tr><th>Negeri</th><th>Jumlah Rekod</th></tr></thead><tbody>${top.map(x=>`<tr><td>${esc(x[0])}</td><td><b>${x[1].toLocaleString()}</b></td></tr>`).join('')}</tbody></table>`;
  }
- const ctx=[p.dataset==='institusi'?'Institusi Pendidikan':'Program',...p.columns,p.category,p.state,p.status==='belum'?'Belum Dilaksanakan':p.status==='sudah'?'Sudah Dilaksanakan':null,p.month?'Bulan '+p.month:null].filter(Boolean).join(' · ');
- if(!rows.length)return `<div class="source">Semakan Masterlist</div><b>Saya tidak jumpa rekod yang sepadan.</b><br><span style="font-size:12px">Saya telah menyemak semua kolum berkaitan dalam dataset ${esc(p.dataset==='institusi'?'Institusi Pendidikan':'Program')}. Filter: ${esc(ctx||'carian kata kunci seluruh masterlist')}.</span>`;
+
+ const ctx=[p.dataset==='institusi'?'Institusi Pendidikan':'Program',p.category,p.state,p.status==='belum'?'Belum Dilaksanakan':p.status==='sudah'?'Telah Dilaksanakan':null,p.month?`${p.until?'Sehingga ':'Bulan '}${monthName(p.month)}`:null,p.year].filter(Boolean).join(' · ');
+
+ if(!rows.length)return `<div class="source">Semakan Masterlist</div><b>Saya tidak menemui rekod yang sepadan dengan pertanyaan tersebut.</b><br><span style="font-size:12px">Semakan dibuat pada dataset ${esc(p.dataset==='institusi'?'Institusi Pendidikan':'Program')} menggunakan filter: ${esc(ctx||'carian seluruh masterlist')}.</span>`;
+
  if(p.wantsParticipant){
    const total=rows.reduce((a,r)=>a+numeric(field(r,['Jumlah Peserta'])),0);
-   return `<div class="source">Semakan Masterlist</div><b>Jumlah peserta: ${total.toLocaleString()}</b><br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${summariseRows(rows,p,p.dataset)}${makeTable(rows,p.dataset,p)}${fullDataView(rows,p.dataset,uid)}`
+   return `<div class="summary-card"><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.72;margin-bottom:6px">Jawapan SMART KDAT</div><div style="font-size:15px;line-height:1.65">Berdasarkan rekod SMART KDAT, jumlah keseluruhan peserta bagi <b>${rows.length.toLocaleString()} rekod yang sepadan ialah ${total.toLocaleString()} peserta</b>.</div></div><div class="source">Data Sokongan</div>${makeTable(rows,p.dataset,p)}`;
  }
+
  if(p.wantsCost){
    const costCols=p.dataset==='institusi'?['Kos Sebenar (RM)','Kos Anggaran (RM)']:['Kos Pelaksanaan (RM)'];
    const sums=costCols.map(c=>[c,rows.reduce((a,r)=>a+numeric(field(r,[c])),0)]);
-   return `<div class="source">Analisis Kos Masterlist</div>${sums.map(([c,v])=>`<b>${esc(c)}: RM ${v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</b>`).join('<br>')}<br><span style="font-size:12px">Berdasarkan ${rows.length.toLocaleString()} rekod (${esc(ctx)}).</span>${summariseRows(rows,p,p.dataset)}${makeTable(rows,p.dataset,p)}${fullDataView(rows,p.dataset,uid)}`
+   const primary=sums[0];
+   return `<div class="summary-card"><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.72;margin-bottom:6px">Jawapan SMART KDAT</div><div style="font-size:15px;line-height:1.65">Berdasarkan rekod SMART KDAT, <b>${esc(primary[0])}</b> bagi rekod yang sepadan ialah <b>RM ${primary[1].toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</b>.</div></div><div class="source">Data Sokongan</div>${makeTable(rows,p.dataset,p)}`;
  }
- if(p.count||p.category||p.state||p.status||p.month||p.columns.length||p.wantsList)return `<div class="source">Semakan Masterlist</div><b>${rows.length.toLocaleString()} rekod ditemui</b><br><span style="font-size:12px">Semakan: ${esc(ctx||'seluruh masterlist')}.</span>${summariseRows(rows,p,p.dataset)}${makeTable(rows,p.dataset,p)}${fullDataView(rows,p.dataset,uid)}`
- return `<div class="source">SMART KDAT</div>Saya kini boleh menyemak <b>semua ${ALL_PROGRAM_COLUMNS.length} kolum Program</b> dan <b>semua ${ALL_INSTITUSI_COLUMNS.length} kolum Institusi Pendidikan</b>, termasuk lokasi, tarikh, perasmi, tetamu kehormat, modul, pelaksana, kerjasama, media, kos, peserta, Ikon K-DAT dan NADI.`
+
+ if(p.count||p.category||p.state||p.status||p.month||p.columns.length||p.wantsList){
+   return `${summariseRows(rows,p,p.dataset)}
+   <div class="source">Rekod Sokongan · ${rows.length.toLocaleString()} rekod ditemui</div>
+   ${makeTable(rows,p.dataset,p)}`;
+ }
+
+ return `<div class="summary-card"><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:.72;margin-bottom:6px">SMART KDAT</div>Saya boleh menyemak dan menganalisis data Program serta Institusi Pendidikan. Cuba tanya soalan seperti <b>“Berapa banyak Karnival Komuniti di Sabah telah dilaksanakan sehingga September?”</b></div>`;
 }
-async function boot(){try{[PROGRAM,INSTITUSI]=await Promise.all([fetch('program.json').then(r=>r.json()),fetch('institusi.json').then(r=>r.json())]);document.getElementById('programCount').textContent=PROGRAM.length.toLocaleString();document.getElementById('institusiCount').textContent=INSTITUSI.length.toLocaleString();document.getElementById('recordBadge').textContent=(PROGRAM.length+INSTITUSI.length).toLocaleString()+' rekod dimuatkan';add(`<div class="source">Selamat datang</div><b>Hai! Saya SMART KDAT.</b><br>Saya boleh membantu anda mencari dan menganalisis data <b>Kempen Internet Selamat</b> berdasarkan masterlist sebenar.<br><br>Cuba: <b>“Karnival Komuniti sahaja”</b> atau <b>“Berapa Karnival Komuniti di Sabah?”</b>`)}catch(e){add(`<div class="source">Ralat Data</div>Pastikan <b>program.json</b> dan <b>institusi.json</b> berada dalam folder yang sama dengan index.html.`)}}document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();const text=q.value.trim();if(!text)return;add(esc(text),'user');q.value='';const t=add('<div class="typing"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();add(answer(text))},350)});document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{q.value=c.textContent;q.focus()}));boot();
+async function boot(){try{[PROGRAM,INSTITUSI]=await Promise.all([fetch('program.json').then(r=>r.json()),fetch('institusi.json').then(r=>r.json())]);document.getElementById('programCount').textContent=PROGRAM.length.toLocaleString();document.getElementById('institusiCount').textContent=INSTITUSI.length.toLocaleString();document.getElementById('recordBadge').textContent=(PROGRAM.length+INSTITUSI.length).toLocaleString()+' rekod dimuatkan';add(`<div class="source">Selamat datang</div><b>Hai! Saya SMART KDAT.</b><br>Saya akan <b>jawab soalan anda dahulu dalam bentuk ringkasan</b>, kemudian memaparkan jadual rekod sebagai data sokongan.<br><br>Cuba: <b>“Berapa banyak Karnival Komuniti di Sabah telah dilaksanakan sehingga September?”</b>`)}catch(e){add(`<div class="source">Ralat Data</div>Pastikan <b>program.json</b> dan <b>institusi.json</b> berada dalam folder yang sama dengan index.html.`)}}document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();const text=q.value.trim();if(!text)return;add(esc(text),'user');q.value='';const t=add('<div class="typing"><i></i><i></i><i></i></div>');setTimeout(()=>{t.remove();add(answer(text))},350)});document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{q.value=c.textContent;q.focus()}));boot();
 </script><a href="dashboard.html" class="smart-dashboard-link">Dashboard Data</a>
 <style>
 .smart-dashboard-link{position:fixed;right:24px;bottom:88px;z-index:9999;background:#0B2545;color:#fff;text-decoration:none;padding:11px 16px;border-radius:999px;font:700 12px Inter,Arial,sans-serif;box-shadow:0 8px 24px rgba(11,37,69,.22);border:1px solid rgba(255,255,255,.18)}
 .smart-dashboard-link:hover{background:#2F63AF;transform:translateY(-1px)}
 @media(max-width:640px){.smart-dashboard-link{right:16px;bottom:82px}}
 </style>
-<a href="data-explorer.html" class="smart-dashboard-link" style="bottom:138px">Keseluruhan Data</a>
 
 <script>
 function __smartDownloadBlob(blob,filename){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}
