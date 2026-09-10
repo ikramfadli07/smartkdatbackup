@@ -15,3 +15,16 @@ Fail untuk GitHub:
 - program.json
 - institusi.json
 - kempen-internet-selamat-logo.png
+
+
+DASHBOARD BAHARU:
+- dashboard.html
+- Statistik keseluruhan Program + Institusi
+- Filter Dataset, Negeri dan Tahun
+- Taburan rekod mengikut Negeri
+- Status Pelaksanaan
+- Top Kategori
+- Topik / Modul
+- Data Terperinci
+- Semua statistik dibaca terus daripada program.json dan institusi.json
+- index.html mempunyai shortcut "Dashboard Data"
